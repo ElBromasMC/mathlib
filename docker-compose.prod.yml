@@ -1,0 +1,12 @@
+services:
+  webserver:
+    restart: unless-stopped
+    build:
+      context: ./src
+      dockerfile: ./Dockerfile
+      target: production
+    environment:
+      - ENV=production
+    ports:
+      - "5678:8080"
+

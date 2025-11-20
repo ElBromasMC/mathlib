@@ -1,0 +1,23 @@
+#!/bin/bash
+
+COMPOSE_PROVIDER="${COMPOSE_PROVIDER:-docker compose}"
+
+SCRIPT_PATH="$(realpath "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
+PROJECT_ROOT="$(realpath "$SCRIPT_DIR/..")"
+
+compose_arguments=(
+    # Project name
+    -p "$(basename "${PROJECT_ROOT}")_prod"
+    # Merge compose files
+    -f docker-compose.base.yml
+    -f docker-compose.prod.yml
+)
+
+if [[ "$REVERSE_PROXY" == "yes" ]]; then
+    compose_arguments+=( -f docker-compose.proxy.yml )
+fi
+
+cd ${PROJECT_ROOT}
+exec ${COMPOSE_PROVIDER} "${compose_arguments[@]}" "$@"
+

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fourier Epicycles Museum - 3D Virtual Gallery</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        body {
+            background: #0a0a0a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #e0e0e0;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a1a2a 100%);
+            width: 100%;
+            box-shadow: 0 2px 15px rgba(139, 69, 19, 0.3);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.2em;
+            background: linear-gradient(90deg, #FFD700, #FFA500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            margin: 10px 0 0 0;
+            color: #aaa;
+            font-size: 1.1em;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            max-width: 1400px;
+            width: 100%;
+        }
+
+        #canvas {
+            border: 2px solid #FFD700;
+            border-radius: 8px;
+            background: #000;
+            box-shadow: 0 4px 25px rgba(255, 215, 0, 0.4);
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            cursor: pointer;
+        }
+
+        .notice {
+            margin-top: 15px;
+            padding: 12px 20px;
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 6px;
+            color: #FFD700;
+            font-size: 0.9em;
+            text-align: center;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px 25px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            border-left: 4px solid #FFD700;
+            font-size: 0.9em;
+            max-width: 1200px;
+        }
+
+        .status-item {
+            margin: 5px 0;
+        }
+
+        .status-label {
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .controls {
+            margin-top: 20px;
+            padding: 20px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .controls h3 {
+            margin-top: 0;
+            color: #FFD700;
+        }
+
+        .control-section {
+            margin: 15px 0;
+        }
+
+        .control-section h4 {
+            color: #FFA500;
+            margin: 10px 0 5px 0;
+            font-size: 1em;
+        }
+
+        .control-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .control-item {
+            padding: 8px;
+            background: #0a0a0a;
+            border-radius: 4px;
+            border-left: 3px solid #666;
+        }
+
+        kbd {
+            background: #333;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 0.9em;
+            color: #FFD700;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .loading {
+            color: #FFD700;
+            font-size: 1.2em;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #1a1a1a;
+            border-top: 4px solid #FFD700;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .footer {
+            margin-top: auto;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .footer a {
+            color: #FFD700;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏛️ Fourier Epicycles Museum</h1>
+        <p class="subtitle">Explore a Virtual Gallery of Animated Mathematical Art</p>
+    </div>
+
+    <div class="container">
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div>Loading 3D Museum...</div>
+        </div>
+
+        <canvas id="canvas" width="1200" height="800" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+
+        <div class="notice">
+            👆 Click on the canvas to enable mouse controls (pointer lock)
+        </div>
+
+        <div class="status">
+            <div class="status-item">
+                <span class="status-label">Status:</span>
+                <span id="status">Initializing...</span>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h3>Museum Controls</h3>
+
+            <div class="control-section">
+                <h4>🚶 Movement</h4>
+                <div class="control-row">
+                    <div class="control-item"><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> Move</div>
+                    <div class="control-item"><kbd>SPACE</kbd> Jump</div>
+                    <div class="control-item"><kbd>CTRL</kbd> Crouch</div>
+                    <div class="control-item"><kbd>Mouse</kbd> Look Around</div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h4>🔍 View</h4>
+                <div class="control-row">
+                    <div class="control-item"><kbd>Left Click</kbd> Zoom</div>
+                    <div class="control-item"><kbd>+</kbd> <kbd>-</kbd> Thickness</div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h4>ℹ️ Tips</h4>
+                <div style="padding: 10px; background: rgba(255,215,0,0.05); border-radius: 4px; margin-top: 10px;">
+                    <ul style="margin: 5px 0; padding-left: 20px;">
+                        <li>Walk up to each painting to see the Fourier epicycles in action</li>
+                        <li>Each wall displays a different drawing created from rotating circles</li>
+                        <li>Use mouse to look around and explore all four walls</li>
+                        <li>You can adjust the thickness of circles and drawing with +/- keys</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Built with <a href="https://www.raylib.com/" target="_blank">Raylib</a> and <a href="https://emscripten.org/" target="_blank">Emscripten</a></p>
+        <p>3D Graphics | First-Person Movement | WebGL Rendering</p>
+    </div>
+
+    <script type='text/javascript'>
+        var Module = {
+            preRun: [],
+            postRun: [],
+            print: (function() {
+                return function(text) {
+                    if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+                    console.log(text);
+                };
+            })(),
+            printErr: function(text) {
+                if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+                console.error(text);
+            },
+            canvas: (function() {
+                var canvas = document.getElementById('canvas');
+
+                // Request pointer lock on click
+                canvas.addEventListener('click', function() {
+                    canvas.requestPointerLock = canvas.requestPointerLock ||
+                                               canvas.mozRequestPointerLock ||
+                                               canvas.webkitRequestPointerLock;
+                    canvas.requestPointerLock();
+                }, false);
+
+                canvas.addEventListener("webglcontextlost", function(e) {
+                    alert('WebGL context lost. You will need to reload the page.');
+                    e.preventDefault();
+                }, false);
+
+                return canvas;
+            })(),
+            setStatus: function(text) {
+                var statusElement = document.getElementById('status');
+                var loadingElement = document.getElementById('loading');
+
+                if (text) {
+                    console.log('Status: ' + text);
+                    statusElement.textContent = text;
+                } else {
+                    statusElement.textContent = 'Exploring Museum';
+                    loadingElement.style.display = 'none';
+                }
+            },
+            totalDependencies: 0,
+            monitorRunDependencies: function(left) {
+                this.totalDependencies = Math.max(this.totalDependencies, left);
+                Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : '');
+            }
+        };
+
+        Module.setStatus('Downloading...');
+
+        window.onerror = function() {
+            Module.setStatus('Exception thrown, see JavaScript console');
+        };
+
+        // Pointer lock change handler
+        document.addEventListener('pointerlockchange', lockChangeAlert, false);
+        document.addEventListener('mozpointerlockchange', lockChangeAlert, false);
+        document.addEventListener('webkitpointerlockchange', lockChangeAlert, false);
+
+        function lockChangeAlert() {
+            var canvas = document.getElementById('canvas');
+            if (document.pointerLockElement === canvas ||
+                document.mozPointerLockElement === canvas ||
+                document.webkitPointerLockElement === canvas) {
+                console.log('Pointer locked');
+            } else {
+                console.log('Pointer unlocked');
+            }
+        }
+
+        // Prevent default browser behavior for game keys
+        window.addEventListener('keydown', function(e) {
+            // List of keys to prevent default behavior
+            const gameKeys = [
+                'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',  // Arrow keys
+                'Space', ' ',                                         // Space
+                'Tab',                                                // Tab
+                '+', '-', '=',                                        // Plus/Minus
+                'KeyW', 'KeyA', 'KeyS', 'KeyD',                      // WASD movement
+                'Control', 'ControlLeft', 'ControlRight'             // Crouch
+            ];
+
+            if (gameKeys.includes(e.code) || gameKeys.includes(e.key)) {
+                e.preventDefault();
+                return false;
+            }
+        }, true);
+
+        // Focus canvas on load
+        window.addEventListener('load', function() {
+            document.getElementById('canvas').focus();
+        });
+    </script>
+    {{{ SCRIPT }}}
+</body>
+</html>

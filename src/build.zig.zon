@@ -1,0 +1,23 @@
+.{
+    .name = .mathlib,
+    .version = "0.1.0",
+    .minimum_zig_version = "0.15.1",
+
+    .fingerprint = 0x102b5599c08d1d39,
+
+    .dependencies = .{
+        // Raylib graphics library - stable release 5.5
+        // Using tagged release instead of master for stable caching
+        .raylib = .{
+            .url = "git+https://github.com/raysan5/raylib#74f7112614e74cd243af8a2941839fb33cf275d0",
+            .hash = "raylib-5.6.0-dev-whq8uBCIBAV-7a1AO_-f5wWL1LxyiAClkWYF1Bri8hPd",
+        },
+    },
+
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "examples",
+    },
+}

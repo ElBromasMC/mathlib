@@ -1,0 +1,5 @@
+services:
+  webserver:
+    environment:
+      - HELLO_WORLD=hello_world
+

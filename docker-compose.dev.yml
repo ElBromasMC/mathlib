@@ -1,0 +1,48 @@
+services:
+  webserver:
+    user: "runner:runner"
+    userns_mode: "keep-id:uid=1000,gid=1000"
+    restart: no
+    build:
+      context: ./src
+      dockerfile: ./Dockerfile
+      target: development
+    volumes:
+      - runner-home:/home/runner
+      - type: bind
+        source: ./src
+        target: /home/runner/src
+      # Bind display
+      - type: bind
+        source: ${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY}
+        target: /tmp/runtime-dir/${WAYLAND_DISPLAY}
+        read_only: true
+      - type: bind
+        source: /tmp/.X11-unix/X0
+        target: /tmp/.X11-unix/X0
+        read_only: true
+      # Bind sound
+      - type: bind
+        source: ${XDG_RUNTIME_DIR}/pulse
+        target: /tmp/runtime-dir/pulse
+        read_only: true
+      # GPU
+      - type: bind
+        source: /sys/dev/char
+        target: /sys/dev/char
+        read_only: true
+      - type: bind
+        source: /sys/devices/platform # Specific to rockchip gpu
+        target: /sys/devices/platform
+        read_only: true
+    environment:
+      - ENV=development
+      - WAYLAND_DISPLAY=${WAYLAND_DISPLAY}
+      - DISPLAY=${DISPLAY}
+
+volumes:
+  runner-home:
+
+x-podman:
+  in_pod: false
+
